@@ -60,7 +60,7 @@ function checkUrlSetupHash() {
     store.persist();
     currentView = "settings";
     render();
-    showToast("Adresa Web App a fost preluată. Introdu PIN-ul tău personal în Setări pentru conectare.", 5000);
+    showToast("Adresa Web App a fost preluată. Introdu cheia ta de acces în Setări pentru conectare.", 5000);
   } catch (err) {
     showToast("Eroare la link-ul de configurare: " + err.message, 5000);
   }
@@ -160,7 +160,7 @@ function bindGlobalEvents() {
     const partnerBtn = e.target.closest("[data-switch-partner]");
     if (partnerBtn) {
       if (store.isConnected()) {
-        showToast("Când ești conectat, profilul este determinat automat de PIN-ul tău personal.", 3500);
+        showToast("Când ești conectat, profilul este determinat automat de cheia ta de acces.", 3500);
         return;
       }
       store.setActivePartner(partnerBtn.dataset.switchPartner);
@@ -782,7 +782,7 @@ function renderSettings() {
       <div class="card-header">
         <div>
           <h2 class="card-title">☁️ Conectare Securizată Google Sheets (v4)</h2>
-          <div class="card-sub">${connected ? `Autentificat ca: ${esc(store.getPartnerName(s.activePartner))} (${esc(store.getActiveEmail())}) • ${esc(s.connection.sheetName || "Sheet")}${sheetLinkHtml(s.connection.sheetUrl)}` : "Neconectat — autentificare prin PIN personal (minim 6 caractere, fără PIN implicit)"}</div>
+          <div class="card-sub">${connected ? `Autentificat ca: ${esc(store.getPartnerName(s.activePartner))} (${esc(store.getActiveEmail())}) • ${esc(s.connection.sheetName || "Sheet")}${sheetLinkHtml(s.connection.sheetUrl)}` : "Neconectat — autentificare prin PIN personal (minim 6 caractere, fără cheie implicit)"}</div>
         </div>
         ${connected ? `<span class="badge" style="background:var(--success-soft); color:var(--success)">● Conectat</span>` : ""}
       </div>
@@ -793,11 +793,11 @@ function renderSettings() {
           <input class="input" id="conn-url" type="url" placeholder="https://script.google.com/macros/s/.../exec" value="${esc(s.connection.webAppUrl)}" required>
         </div>
         <div class="field">
-          <label>PIN-ul tău personal (PIN_P1 sau PIN_P2 din Script Properties — minim 6 caractere)</label>
+          <label>Cheia ta de acces (PIN_P1 sau PIN_P2 din Script Properties — minim 32 caractere)</label>
           <input class="input" id="conn-pin" type="password" placeholder="Cheia ta de acces (min. 32 caractere)" autocomplete="off" value="${esc(s.connection.pin)}" minlength="32" required>
         </div>
         <div class="card-sub">
-          Identitatea partenerului este determinată <strong>exclusiv de server din PIN</strong> prin POST (niciodată în URL).
+          Identitatea partenerului este determinată <strong>exclusiv de server din cheie</strong> prin POST (niciodată în URL).
         </div>
         <div class="btn-row">
           <button type="submit" class="btn btn-primary">🔗 Conectează & Inițializează</button>
@@ -811,21 +811,21 @@ function renderSettings() {
       <div class="card-header">
         <div>
           <h2 class="card-title">📱 Portabilitate Telefon Nou (Fără credențiale în link)</h2>
-          <div class="card-sub">Link-ul <code>BF2-...</code> transmite DOAR adresa Web App. Fiecare partener își introduce PIN-ul propriu separat.</div>
+          <div class="card-sub">Link-ul <code>BF2-...</code> transmite DOAR adresa Web App. Fiecare partener își introduce cheia proprie separat.</div>
         </div>
       </div>
 
       ${s.connection.webAppUrl ? `
         <div class="btn-row" style="margin-bottom:12px">
-          <button class="btn btn-primary" id="btn-gen-transfer">📤 Generează Link/Cod (fără PIN)</button>
+          <button class="btn btn-primary" id="btn-gen-transfer">📤 Generează Link/Cod (fără cheie)</button>
         </div>
         <div id="transfer-output" style="display:none; margin-bottom:14px"></div>
-      ` : `<div class="card-sub" style="margin-bottom:12px">Introdu adresa Web App mai sus pentru a genera un link de configurare fără PIN.</div>`}
+      ` : `<div class="card-sub" style="margin-bottom:12px">Introdu adresa Web App mai sus pentru a genera un link de configurare fără cheie.</div>`}
 
       <div style="padding-top:12px; border-top:1px solid var(--border)">
         <label style="display:block; font-size:0.8rem; font-weight:700; color:var(--text-muted); margin-bottom:6px">Ai primit un cod BF2-...?</label>
         <div style="display:flex; gap:8px">
-          <input class="input" id="input-setup-code" placeholder="Lipește aici codul BF2-... (fără PIN)">
+          <input class="input" id="input-setup-code" placeholder="Lipește aici codul BF2-... (fără cheie)">
           <button class="btn btn-primary" id="btn-apply-setup-code">Preia URL</button>
         </div>
       </div>
@@ -1005,7 +1005,7 @@ function bindViewSpecificEvents() {
       out.style.display = "block";
       out.innerHTML = `
         <div class="code-box" style="margin-bottom:8px">
-          <div style="font-weight:700; margin-bottom:4px; font-family:inherit">Cod configurare (DOAR URL, fără PIN):</div>
+          <div style="font-weight:700; margin-bottom:4px; font-family:inherit">Cod configurare (DOAR URL, fără cheie):</div>
           <div>${esc(code)}</div>
         </div>
         <div class="btn-row">
@@ -1013,7 +1013,7 @@ function bindViewSpecificEvents() {
           <button class="btn btn-sm btn-secondary" id="btn-copy-code">📋 Copiază Cod</button>
         </div>
       `;
-      $("#btn-copy-link").onclick = () => copyText(link, "Link fără PIN copiat!");
+      $("#btn-copy-link").onclick = () => copyText(link, "Link fără cheie copiat!");
       $("#btn-copy-code").onclick = () => copyText(code, "Cod BF2 copiat!");
     };
   }
@@ -1028,7 +1028,7 @@ function bindViewSpecificEvents() {
         store.state.connection.webAppUrl = cfg.webAppUrl;
         store.persist();
         render();
-        showToast("URL preluat! Introdu acum PIN-ul tău personal mai sus și apasă Conectează.");
+        showToast("URL preluat! Introdu acum cheia ta de acces mai sus și apasă Conectează.");
       } catch (err) {
         showToast("Eroare cod: " + err.message, 4500);
       }
