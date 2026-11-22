@@ -274,7 +274,7 @@ function renderControlsRow() {
     { id: "shared", label: "Doar Comune" },
     { id: "mine", label: `Doar ${meName}` },
     { id: "partner", label: `Doar ${otherName}` },
-    { id: "private", label: "🔒 Privatele mele" }
+    { id: "private", label: "🔒 Private (doar în app)" }
   ];
 
   return `
@@ -1285,7 +1285,7 @@ function openExpenseModal(expenseId) {
         <div class="toggle-row">
           <div>
             <div style="font-weight:700; font-size:0.88rem">🔒 Înregistrare privată</div>
-            <div class="card-sub">Ascunsă celuilalt utilizator în aplicație</div>
+            <div class="card-sub">Ascunsă celuilalt în aplicație. Rămâne vizibilă în Google Sheet pentru oricine are acces la el.</div>
           </div>
           <label class="switch">
             <input type="checkbox" id="exp-private" ${exp && exp.isPrivate ? "checked" : ""} ${isOwner ? "" : "disabled"}>
