@@ -350,6 +350,12 @@ function renderDashboard() {
   const p2Pct = splitTotal > 0 ? 100 - p1Pct : 50;
 
   const activeAccounts = a.accountBalances.filter((acc) => !acc.archived);
+  const availVisible = activeAccounts.filter((acc) => acc.visible !== false);
+  const sumBase = (list) => Math.round(list.reduce((t, acc) => t + (Number(acc.baseBalance) || 0), 0) * 100) / 100;
+  const totalAccounts = sumBase(availVisible);
+  const reservedTotal = sumBase(availVisible.filter((acc) => acc.includeInAvailable === false));
+  const availableTotal = Math.round((totalAccounts - reservedTotal) * 100) / 100;
+  const hiddenAccCount = activeAccounts.length - availVisible.length;
   const recent = a.expenses.slice(0, 6);
 
   return `
@@ -401,6 +407,12 @@ function renderDashboard() {
         <h2 class="card-title">🏦 Conturi & Solduri (${activeAccounts.length})</h2>
         <button class="btn btn-sm btn-secondary" data-view="catalog">Gestionează</button>
       </div>
+      <div class="mini-card" style="margin-bottom:10px; display:block">
+        <div style="display:flex; justify-content:space-between; font-weight:800"><span>Disponibil</span><span>${formatMoney(availableTotal, a.baseCur)}</span></div>
+        <div style="display:flex; justify-content:space-between" class="card-sub"><span>Rezervat (exclus din disponibil)</span><span>${formatMoney(reservedTotal, a.baseCur)}</span></div>
+        <div style="display:flex; justify-content:space-between" class="card-sub"><span>Total conturi</span><span>${formatMoney(totalAccounts, a.baseCur)}</span></div>
+        <div class="card-sub" style="margin-top:6px">Calculat din soldurile conturilor (nu din buget sau venituri minus cheltuieli)${hiddenAccCount ? `; ${hiddenAccCount} cont(uri) personale ale celuilalt nu sunt incluse` : ""}.</div>
+      </div>
       <div class="item-grid">
         ${activeAccounts.map((acc) => `
           <div class="mini-card">
@@ -408,7 +420,7 @@ function renderDashboard() {
               <div class="mini-icon" style="background:var(--primary-soft); color:var(--primary)">${accountIcon(acc.type)}</div>
               <div>
                 <div style="font-weight:700; font-size:0.86rem">${esc(acc.name)}</div>
-                <div class="card-sub">${esc(store.getPartnerName(acc.owner))} • ${esc(acc.type)}${acc.initialDate ? ` • din ${esc(acc.initialDate)}` : ""}</div>
+                <div class="card-sub">${esc(store.getPartnerName(acc.owner))} • ${esc(acc.type)}${acc.initialDate ? ` • din ${esc(acc.initialDate)}` : ""}${acc.includeInAvailable === false ? " • Rezervat" : ""}</div>
               </div>
             </div>
             <div style="text-align:right; font-weight:800; font-size:0.88rem; color:${acc.visible === false ? "var(--text-muted)" : (acc.balance < 0 ? "var(--danger)" : "var(--text)")}">
@@ -1465,6 +1477,16 @@ function openAccountModal(accId) {
             </select>
           </div>
         </div>
+        <div class="toggle-row">
+          <div>
+            <div style="font-weight:700; font-size:0.88rem">Include în disponibil</div>
+            <div class="card-sub">Debifează pentru bani rezervați (taxe etc.): soldul rămâne vizibil, dar nu intră în Disponibil.</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="acc-avail" ${acc && acc.includeInAvailable === false ? "" : "checked"}>
+            <span class="slider"></span>
+          </label>
+        </div>
         <div class="btn-row" style="justify-content:flex-end; margin-top:6px">
           <button type="button" class="btn btn-secondary" data-close-modal>Anulează</button>
           <button type="submit" class="btn btn-primary">💾 Salvează cont</button>
@@ -1486,6 +1508,7 @@ function openAccountModal(accId) {
       initialDate: $("#acc-init-date").value || "",
       owner: $("#acc-owner").value,
       archived: $("#acc-archived").value === "yes",
+      includeInAvailable: $("#acc-avail").checked,
       order: acc ? acc.order : (s.accounts.length + 1),
       visible: true
     };
